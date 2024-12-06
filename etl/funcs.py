@@ -93,9 +93,12 @@ def make_geometry(
     geom = BNode()
     g.add((feature_iri, GEO.hasGeometry, geom))
     g.add((geom, RDF.type, GEO.Geometry))
+    g.bind("geo", GEO)
 
     if wkt is not None:
         g.add((geom, GEO.asWKT, Literal(wkt, datatype=GEO.wktLiteral)))
 
     if description is not None:
         g.add((geom, SDO.description, Literal(description, datatype=XSD.string)))
+        g.bind("schema", SDO)
+

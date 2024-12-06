@@ -76,7 +76,6 @@ def test_make_geometry_wkt_text():
     g2 = Graph().parse(
         data="""
                 PREFIX geo: <http://www.opengis.net/ont/geosparql#>
-                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
                 <http://example.com/feature/x>
                     geo:hasGeometry
@@ -108,7 +107,6 @@ def test_make_geometry_latlong():
     g2 = Graph().parse(
         data="""
                 PREFIX geo: <http://www.opengis.net/ont/geosparql#>
-                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
                 
                 <http://example.com/feature/x>
                     geo:hasGeometry
@@ -164,7 +162,6 @@ def test_make_geometry_shapely_polygon():
     g2 = Graph().parse(
         data="""
                 PREFIX geo: <http://www.opengis.net/ont/geosparql#>
-                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
                 <http://example.com/feature/x>
                     geo:hasGeometry
@@ -178,6 +175,37 @@ def test_make_geometry_shapely_polygon():
     )
 
     make_geometry(g, feature_iri, shapely_object=poly)
+
+    print(g.serialize(format="longturtle"))
+    print(g2.serialize(format="longturtle"))
+
+    assert g2.isomorphic(g)
+
+
+def test_make_geometry_description():
+    g = Graph()
+    feature_iri = URIRef("http://example.com/feature/x")
+    desc = "Room 3, Shelf 18, Box 23A"
+
+    # test 2D point
+    g2 = Graph().parse(
+        data="""
+                PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+                PREFIX schema: <https://schema.org/>
+                PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+                <http://example.com/feature/x>
+                    geo:hasGeometry
+                        [
+                            a geo:Geometry ;
+                            schema:description "Room 3, Shelf 18, Box 23A"^^xsd:string ;
+                        ] ;
+                .        
+        """,
+        format="turtle",
+    )
+
+    make_geometry(g, feature_iri, description=desc)
 
     print(g.serialize(format="longturtle"))
     print(g2.serialize(format="longturtle"))
