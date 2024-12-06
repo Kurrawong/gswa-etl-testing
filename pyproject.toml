@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "etl-testing"
+version = "0.1.0"
+description = ""
+authors = ["Nicholas Car <nick@kurrawong.ai>"]
+readme = "README.md"
+packages = [{include = "etl_testing"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+rdflib = "^7.1.1"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
+black = "^24.10.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
