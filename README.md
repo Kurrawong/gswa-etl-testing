@@ -86,7 +86,5 @@ The type annotations apply to the function return value (`-> Graph`) telling the
 ## Author
 
 **Nicholas J. Car**  
-<nick@kurrawong.ai>>  
+<nick@kurrawong.ai>  
 [KurrawongAI](https://kurrawong.ai)  
-
-###
