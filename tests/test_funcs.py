@@ -1,7 +1,8 @@
-from etl.funcs import latitudeLongitude2, tenement
+from etl.funcs import latitudeLongitude2, tenement, make_geometry
 from etl.utils import EX
 
-from rdflib import Graph
+from rdflib import Graph, URIRef
+from shapely import Polygon
 
 
 def test_latitudeLongitude():
@@ -64,3 +65,121 @@ def test_tenement():
 
     # compare comparison object to function being tested's output
     assert g2.isomorphic(t)
+
+
+def test_make_geometry_wkt_text():
+    g = Graph()
+    feature_iri = URIRef("http://example.com/feature/x")
+    wkt = "POINTZ(137 -27)"
+
+    # test 2D point
+    g2 = Graph().parse(
+        data="""
+                PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+                <http://example.com/feature/x>
+                    geo:hasGeometry
+                        [
+                            a geo:Geometry ;
+                            geo:asWKT "POINT(137 -27)"^^geo:wktLiteral ;
+                        ] ;
+                .        
+        """,
+        format="turtle",
+    )
+
+    make_geometry(g, feature_iri, wkt=wkt)
+
+    print(g.serialize(format="longturtle"))
+    print(g2.serialize(format="longturtle"))
+
+    assert g2.isomorphic(g)
+
+
+def test_make_geometry_latlong():
+    # test 3D point
+    g = Graph()
+    feature_iri = URIRef("http://example.com/feature/x")
+    long = 137
+    lat = -27
+    ele = 350
+
+    g2 = Graph().parse(
+        data="""
+                PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                
+                <http://example.com/feature/x>
+                    geo:hasGeometry
+                        [
+                            a geo:Geometry ;
+                            geo:asWKT "POINTZ(137 -27 350)"^^geo:wktLiteral ;
+                        ] ;
+                .        
+        """,
+        format="turtle",
+    )
+
+    make_geometry(g, feature_iri, longitude=long, latitude=lat, elevation=ele)
+
+    print(g.serialize(format="longturtle"))
+    print(g2.serialize(format="longturtle"))
+
+    assert g2.isomorphic(g)
+
+    # test 2D point
+    g3 = Graph().parse(
+        data="""
+                PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+                <http://example.com/feature/x>
+                    geo:hasGeometry
+                        [
+                            a geo:Geometry ;
+                            geo:asWKT "POINT(137 -27)"^^geo:wktLiteral ;
+                        ] ;
+                .        
+        """,
+        format="turtle",
+    )
+
+    g = Graph()
+
+    make_geometry(g, feature_iri, longitude=long, latitude=lat)
+
+    print(g.serialize(format="longturtle"))
+    print(g3.serialize(format="longturtle"))
+
+    assert g3.isomorphic(g)
+
+
+def test_make_geometry_shapely_polygon():
+    g = Graph()
+    feature_iri = URIRef("http://example.com/feature/x")
+    poly = Polygon([[0, 0], [1, 0], [1, 1], [0, 1]])
+
+    # test 2D point
+    g2 = Graph().parse(
+        data="""
+                PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+                <http://example.com/feature/x>
+                    geo:hasGeometry
+                        [
+                            a geo:Geometry ;
+                            geo:asWKT "POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))"^^geo:wktLiteral ;
+                        ] ;
+                .        
+        """,
+        format="turtle",
+    )
+
+    make_geometry(g, feature_iri, shapely_object=poly)
+
+    print(g.serialize(format="longturtle"))
+    print(g2.serialize(format="longturtle"))
+
+    assert g2.isomorphic(g)

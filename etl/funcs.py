@@ -1,5 +1,7 @@
-from rdflib import Graph, URIRef, Literal, BNode, Namespace
-from rdflib.namespace import GEO, RDF, RDFS
+from rdflib import Graph, URIRef, Literal, BNode
+from rdflib.namespace import GEO, RDF, RDFS, SDO, XSD
+from shapely import Point, Polygon, LineString
+from typing import Optional, Union
 
 from etl.utils import EX
 
@@ -53,7 +55,47 @@ def tenement(iri, subject, g):
 
 
 def tenement2(iri: URIRef, tenement_id: str, g: Graph) -> Graph:
+    """This function is the same as tenement() but uses type hinting"""
     if tenement_id is not None:
         t = URIRef(EX_tenement + clean_id(tenement_id))
         g.add((iri, EX.hasTenement, t))
     return g
+
+
+def make_geometry(
+        g: Graph,
+        feature_iri: URIRef,
+        wkt: Optional[str] = None,
+        longitude: Optional[float] = None,
+        latitude: Optional[float] = None,
+        elevation: Optional[float] = None,
+        shapely_object: Optional[Union[Point, Polygon, LineString]] = None,
+        description: Optional[str] = None
+) -> None:
+    # make the wkt
+    if wkt is not None:
+        pass
+
+    if longitude is not None and latitude is not None:
+        if elevation is not None:
+            wkt = f"POINTZ({longitude} {latitude} {elevation})"
+        else:
+            wkt = f"POINT({longitude} {latitude})"
+
+    if shapely_object is not None:
+        wkt = shapely_object.wkt
+
+    # if, at this point, wkt and description are still none, exit as we have nothing
+    if wkt is None and description is None:
+        return
+
+    # we have either wkt and/or description, so make basic Geometry
+    geom = BNode()
+    g.add((feature_iri, GEO.hasGeometry, geom))
+    g.add((geom, RDF.type, GEO.Geometry))
+
+    if wkt is not None:
+        g.add((geom, GEO.asWKT, Literal(wkt, datatype=GEO.wktLiteral)))
+
+    if description is not None:
+        g.add((geom, SDO.description, Literal(description, datatype=XSD.string)))

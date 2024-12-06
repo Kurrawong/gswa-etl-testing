@@ -9,6 +9,7 @@ packages = [{include = "etl_testing"}]
 [tool.poetry.dependencies]
 python = "^3.11"
 rdflib = "^7.1.1"
+shapely = "^2.0.6"
 
 
 [tool.poetry.group.dev.dependencies]
